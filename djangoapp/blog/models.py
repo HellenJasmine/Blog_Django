@@ -48,6 +48,10 @@ class Category(models.Model):
         return self.name
     
 class Page(models.Model):
+    class Meta:
+        verbose_name = 'Page'
+        verbose_name_plural = 'Pages'
+
     title = models.CharField(max_length=65)
     slug = models.SlugField(
         unique=True,
