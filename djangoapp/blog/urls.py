@@ -10,7 +10,7 @@ urlpatterns = [
     path("post/<slug:slug>/", post, name='post'),
 
     path("created_by/<int:author_pk>/", CreatedByListView.as_view(), name='created_by'),
-    path("category/<slug:slug>/", category, name='category'),
+    path("category/<slug:slug>/", CategoryListView.as_view(), name='category'),
     path('tag/<slug:slug>/', tag, name='tag'),
     path('search/', search, name="search"),
     

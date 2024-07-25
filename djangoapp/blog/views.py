@@ -1,4 +1,5 @@
 from typing import Any
+from django.db.models.query import QuerySet
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
 from blog.models import Post, Page
@@ -60,27 +61,6 @@ def page(request, slug):
         }
     )
 
-# def created_by(request, author_pk):
-#     user = User.objects.filter(pk= author_pk).first()
-#     if user is None:
-#         raise Http404("Usuario nao existe")
-#     posts = Post.objects.get_published().filter(created_by__pk =author_pk)
-#     paginator = Paginator(posts, PER_PAGE)
-#     page_number = request.GET.get("page")
-#     page_obj = paginator.get_page(page_number)
-#     user_full_name = user.username
-#     if user.first_name:
-#         user_full_name = f"{user.first_name} {user.last_name}"
-#     page_title = "Post de "+ user_full_name + ' - '
-
-#     return render(
-#         request,
-#         'blog/pages/index.html',
-#         {
-#             'page_obj': page_obj,
-#             'page_title':page_title,
-#         }
-#     )
 
 class CreatedByListView(PostListView):
     def __init__(self, **kwargs: Any) -> None:
@@ -112,7 +92,7 @@ class CreatedByListView(PostListView):
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         author_pk = self.kwargs.get("author_pk")
         user = User.objects.filter(pk=author_pk).first()
-        
+
         if user is None:
             raise Http404()
         
@@ -124,27 +104,21 @@ class CreatedByListView(PostListView):
         return super().get(request, *args, **kwargs)
 
 
-def category(request, slug):
-    posts = Post.objects.get_published().filter(category__slug = slug)
+class CategoryListView(PostListView):
+    allow_empty = False
 
-
-    paginator = Paginator(posts, PER_PAGE)
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
-
-    if len(page_obj) == 0:
-        raise Http404()
+    def get_queryset(self) -> QuerySet[Any]:
+        querySet = super().get_queryset()
+        querySet = querySet.filter(category__slug = self.kwargs.get('slug'))
+        return querySet
     
-    page_title = f"{page_obj[0].category.name} - Categoria - "
-
-    return render(
-        request,
-        'blog/pages/index.html',
-        {
-            'page_obj': page_obj,
-            'page_title': page_title,
-        }
-    )
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        page_title = f"{self.object_list[0].category.name} - Categoria - "
+        context.update({
+            'page_title':page_title,
+        })
+        return context
 
 def search(request):
     search_value = request.GET.get("search").strip()
