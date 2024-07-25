@@ -1,28 +1,31 @@
+from typing import Any
 from django.shortcuts import render
 from django.core.paginator import Paginator
 from blog.models import Post, Page
 from django.db.models import Q
 from django.http import Http404
 from django.contrib.auth.models import User
+from django.views.generic import ListView
 
 PER_PAGE = 9
 
+class PostListView(ListView):
+    model = Post
+    template_name = 'blog/pages/index.html'
+    context_object_name = 'posts'
+    ordering = '-pk',
+    paginate_by = PER_PAGE
+    queryset = Post.objects.get_published()
 
-# Create your views here.
-def index(request):
-    posts = Post.objects.get_published()
-    paginator = Paginator(posts, PER_PAGE)
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
 
-    return render(
-        request,
-        'blog/pages/index.html',
-        {
-            'page_obj': page_obj,
+        context.update({
             'page_title':'Home - ',
-        }
-    )
+        })
+        
+        return context
+    
 
 def post(request, slug):
     post_obj = Post.objects.get_published().filter(slug = slug).first()
