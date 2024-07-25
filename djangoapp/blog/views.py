@@ -26,23 +26,23 @@ class PostListView(ListView):
         return context
     
 
-def post(request, slug):
-    post_obj = Post.objects.get_published().filter(slug = slug).first()
 
-    if post_obj is None:
-        raise Http404()
-    
-    page_title = f"{post_obj.title} - Post - "
+class PostDetailView(DetailView):
 
-    return render(
-        request,
-        'blog/pages/post.html',
-        {
-            'post': post_obj,
+    model = Post
+    template_name = 'blog/pages/post.html'
+    context_object_name = 'post'
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        page_title = f"{self.get_object().title} - Post -"
+        context.update({
             'page_title': page_title,
-        }
-    )
-
+        })
+        return context
+    
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().filter(is_published = True)
 
 class PageDetailView(DetailView):
     model = Page
